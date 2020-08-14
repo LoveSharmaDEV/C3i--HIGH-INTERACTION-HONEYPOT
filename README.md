@@ -3,6 +3,8 @@
 
 # HONEYPOT
 
+<img src="HONEYPOT/ARCHITECTURE/Honey.jpeg" width=450 height=350>
+
 A honeypot is a computer security mechanism which is set to detect or deflect the unauthorised access of any information system. Generally honeypot consists of data, which seems to be legitimate part of the service, but is in isaloted enviroments and is frequently monitored.
 
 **Honeypots are basically of 2 types:**
@@ -30,13 +32,18 @@ In this project we have used services :-
 * SMTP SERVICE
 
 ### THE FIRST PHASE
-The first phase was to create docker images for our vulnerable services. So we created dockerfile for each and installed the services from scratch using source code. To ensure that the services version are vulnerable we have installed the versions with CVE score greater than 7.5 .
+<img src="HONEYPOT/ARCHITECTURE/Docker_logo_011.png" width=350 height=250>
+
+
+The first phase was to create docker images for our vulnerable services. So we created dockerfile for each and installed the services from scratch using source code. To ensure that the services version are vulnerable we have installed the versions with CVE score greater than 7.5
 
 ### THE SECOND PHASE
 The second phase was to basically create proxies for all the services mentioned above in order to log down each activity performed by user on the service. Proxies have been written in python using libraries like paramiko (For SSH), twisted (for TELNET), smtplib (for SMTP) while the core of each proxy lied in the implementation of python sockets.
 
 ### THE THIRD PHASE
-The third phaseinvolved setting up the kubernetes cluster. We have used a 3 noded kubernetes cluster (1 master and 2 slaves nodes)
+<img src="HONEYPOT/ARCHITECTURE/Kubernetes-2.png" width=350 height=250>
+
+The third phase involved setting up the kubernetes cluster. We have used a 3 noded kubernetes cluster (1 master and 2 slaves nodes)
 
 Steps used for setting cluster (these steps are for setting 2 noded cluster)
 
@@ -101,6 +108,9 @@ The fourth phase after setting up kubernetes cluster was to explore the idea of 
 Multicontainer pod basically involves running more than one docker containers inside a same pod. This will help us to make a communication channel between our proxy services and vulnerable services. There are many ways in which two containers can communicate if they are in same pod.</br> One way is by using **shared volume**, in this a common host storage is selected which is then being shared between all the containers.</br> And second way is by using **IPC**, containers in the same pod share common network space, that means they can communicate with each other using local host.</br>
 
 ### THE FIFTH PHASE
+
+<img src="HONEYPOT/ARCHITECTURE/localreg.jpg" width=350 height=250>
+
 The Fifth phase Taking the whole setup offline. This phase basically involved having all images locally present. We dont want our honeypot to depend on dockerhub to download images. So here we created a private local registry server which can be used by the all the nodes to download images when required.
 
 This is a private registry set up for saving images after building from dockerfiles.
@@ -121,7 +131,11 @@ And edit it as follows: </br>
 * perform step 1 on all the nodes
 
 ### THE SIXTH PHASE
-The sixth phase was to set up a logging architecture. As we are having around  more than five services to be deployed on kubernetes cluster, each service would be generating it's own set of logs. So it becomes necessary to have a centralized logging mechanism. For this we have used fluentd. It is a third party tool which has got a great support for kubernetes. It is basically a logging agent that is setup on each proxy service to direct the logs collected from each vulnerable service to a common interface or command line. Fluentd can be used along with kibana and elastic search to have a proper visualization of all the logs on the basis of tagging done(to identify logs separtely). We haven't used elastic search or kibana, we have directed all the logs to separate machine stdout.
+
+<img src="HONEYPOT/ARCHITECTURE/fluentd.jpeg" width=350 height=250>
+
+
+The sixth phase was to set up a logging architecture. As we are having around  more than five services to be deployed on kubernetes cluster, each service would be generating it's own set of logs. So it becomes necessary to have a centralized logging mechanism. For this we have used **fluentd**. It is a third party tool which has got a great support for kubernetes. It is basically a logging agent that is setup on each proxy service to direct the logs collected from each vulnerable service to a common interface or command line. Fluentd can be used along with kibana and elastic search to have a proper visualization of all the logs on the basis of tagging done(to identify logs separtely). We haven't used elastic search or kibana, we have directed all the logs to separate machine stdout.
 
 
 ### THE SEVENTH PHASE
