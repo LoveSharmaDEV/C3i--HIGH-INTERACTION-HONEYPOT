@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: fluentdarchitecture
+        labels:
+                app: fluentdarch
+spec:
+        selector:
+                matchLabels:
+                        app: fluentdarch
+        replicas: 1
+
+        template:
+                metadata:
+                        labels:
+                                app: fluentdarch
+                spec:
+                        containers:
+                                - name: fluentdarchitecture
+                                  image: kubemaster:5000/fluentdaggreagator:2
+                                  ports:
+                                        - containerPort: 24224
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: fluentdarchservice
+spec:
+        selector:
+                app: fluentdarch
+        ports:
+                - protocol: TCP
+                  name: "24224"
+                  port: 24224
+                  targetPort: 24224
+                                    

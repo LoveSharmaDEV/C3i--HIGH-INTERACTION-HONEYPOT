@@ -1,0 +1,246 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: drupal-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: drupal
+                tier: frontend
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/www/html"
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: mysql-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: drupal
+                tier: mysql
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/lib/mysql"
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: smtp-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: drupal
+                tier: smtp
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/mail"
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: drupal-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: drupal
+                tier: frontend
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: drupal-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: drupal
+                tier: mysql
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: smtp-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: drupal
+                tier: smtp
+
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: drupal-mysql
+        namespace: kube-system
+        labels:
+                app: drupal
+spec:
+        type: NodePort
+
+        ports:
+
+                - nodePort: 32023
+                  name: "22"
+                  port: 22
+                  targetPort: 22
+
+                - nodePort: 32024
+                  name: "80"
+                  port: 80
+                  targetPort: 80 
+    
+        selector:
+                app: drupal
+                tier: mysql
+       
+
+ 
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: drupal-mysql
+        namespace: kube-system
+        labels:
+                app: drupal
+spec:
+        selector:
+                matchLabels:
+                        app: drupal
+                        tier: mysql
+
+        strategy:
+                type: Recreate
+        template:
+                metadata:
+                        labels:
+                                app: drupal
+                                tier: mysql
+
+                spec:
+                        containers:
+
+
+                                - image: 192.168.1.3:5000/smtparch:2
+                                  name: smtp
+                                  ports:
+                                          - containerPort: 25
+
+                                  volumeMounts:
+                                          - name: smtp-persistent-storage1
+                                            mountPath: /var/mail/
+
+
+
+                                - image: 192.168.1.3:5000/ssharch:2
+                                  name: sshd
+                                  ports:
+                                          - containerPort: 22
+                                            name: sshd
+                                  volumeMounts:
+
+                                          - name: smtpdata
+                                            mountPath: /var/mail
+
+                                          - name: mysqldata
+                                            mountPath: /var/lib/mysql/
+                                  
+                                          - name: drupaldata
+                                            mountPath: /var/www/html/
+                                            
+
+                                - image: mysql:5.6
+                                  imagePullPolicy: Always
+                                  name: mysql
+                                  env:
+                
+                                          - name: MYSQL_ROOT_PASSWORD
+                                            value: YWRtaW4=
+                         
+                                  ports:
+                                          - containerPort: 3306
+                                            name: mysql
+                                  volumeMounts:
+                                          - name: mysql-persistent-storage1
+                                            mountPath: /var/lib/mysql/
+
+                                - image: 192.168.1.6:5000/drupalarch:2
+                                  name: drupal
+                                  env:
+                                          - name: DRUPAL_DB_HOST
+                                            value: 127.0.0.1
+                                          - name: DRUPAL_DB_PASSWORD
+                                            value: YWRtaW4=
+                                          - name: DRUPAL_DB_USER
+                                            value: root
+
+                                  ports:
+                                          - containerPort: 80
+                                            name: drupal
+
+                                  volumeMounts:
+
+                                          - name: drupal-persistent-storage1
+                                            mountPath: /var/www/html/
+
+                                          
+
+
+
+                        volumes:
+                                - name: mysql-persistent-storage1
+                                  persistentVolumeClaim:
+                                          claimName: mysql-persistent-storage1
+                                - name: drupal-persistent-storage1
+                                  persistentVolumeClaim:
+                                          claimName: drupal-persistent-storage1
+                                - name: smtp-persistent-storage1
+                                  persistentVolumeClaim:
+                                          claimName: smtp-persistent-storage1
+
+                                - name: mysqldata
+                                  hostPath:
+                                          path: /var/lib/mysql
+                                - name: drupaldata
+                                  hostPath:
+                                          path:  /var/www/html
+                                - name: smtpdata
+                                  hostPath:
+                                          path: /var/mail
+
+

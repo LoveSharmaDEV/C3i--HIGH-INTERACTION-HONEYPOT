@@ -1,0 +1,61 @@
+Deploying Local Registry !!!!
+
+Aim: Deploying local registry in Master Node. So that all the images can be locally pulled and saved from the slave node.
+
+Envirnment: Performing it in three noded cluster
+
+-----------------------------------------------------------------------------------------------------------------------
+
+1. This is my /etc/hosts file for all Master and slave nodes
+
+127.0.0.1	localhost
+192.168.99.1    kubemaster
+192.168.99.2    kubeslave1
+192.168.99.3    kubeslave3
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+
+Make sure you have the same kind of configuration in your 3 noded architecture
+ARCHITECTURE
+kubemaster 
+kubeslave1
+kubeslave2
+
+All the three nodes should be able to ping each other which is an obvious condition in forming noded architecture.
+
+
+2. Now build and run the docker-compose file. This would intiate a docker registry in your system at port 5000.
+
+3. Stop it for now as we have to perform certain configurations
+
+4. Now there have to certain configurations done in all the nodes(master and slave)
+
+got to /etc/docker/daemon.json if not already there create it
+
+And edit it as follows:
+{
+	"insecure-registries": ["kubemaster:5000"]
+}
+
+Here kubemaster is my master node IP
+Copy exactly the same content in slave nodes also
+
+5. Once the daemon.json is set,  restart the docker service (systemctl restart docker)
+
+6. Now the docker registry is set and running for use
+
+7. Now to work with this local docker registry
+
+In master node:
+
+docker pull <image_name>:<tag>   (This will pull image from docker hub)
+docker tag <image_name>:<tag> kubemaster:5000/<image_name:tag>
+docker push kubemaster:5000/<image_name:tag>
+
+In slave node:
+
+docker pull kubemaster:5000/<image_name:tag>
+
+

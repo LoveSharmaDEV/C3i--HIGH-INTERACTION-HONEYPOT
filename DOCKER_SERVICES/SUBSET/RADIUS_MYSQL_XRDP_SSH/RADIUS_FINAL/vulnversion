@@ -1,0 +1,51 @@
+VULNERABLE RADIUS SERVER
+
+RESEARCH : VULNERABILITY TYPE: Denial Of ServiceExecute CodeOverflow
+CVE-2017-10984
+CWEID: 787
+
+ An FR-GV-301 issue in FreeRADIUS 3.x before 3.0.15 allows "Write overflow in data2vp_wimax()" - this allows remote attackers to cause a denial of service (daemon crash) or possibly execute arbitrary code. 
+
+https://www.cvedetails.com/cve/CVE-2017-10984/
+
+
+
+
+
+
+
+
+
+
+
+
+Vulnerability Details : CVE-2017-10985
+
+
+Vulnerability Type(s) 	Denial Of Service
+
+An FR-GV-302 issue in FreeRADIUS 3.x before 3.0.15 allows "Infinite loop and memory exhaustion with 'concat' attributes" and a denial of service. 
+
+CVSS Score 	7.8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Vulnerability Details : CVE-2019-11235
+
+FreeRADIUS before 3.0.19 mishandles the "each participant verifies that the received scalar is within a range, and that the received group element is a valid point on the curve being used" protection mechanism, aka a "Dragonblood" issue, a similar issue to CVE-2019-9498 and CVE-2019-9499. 
+
+CVSS Score 	7.5
+
+https://www.cvedetails.com/cve/CVE-2019-11235/

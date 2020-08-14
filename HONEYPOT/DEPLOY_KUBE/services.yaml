@@ -1,0 +1,88 @@
+# First we will go with deploying our services (HTTP,SSH,FTP,TELNET,SMTP)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: services-stack
+        labels:
+                app: services-stack
+
+spec:
+        selector:
+                matchLabels:
+                        app: services-stack
+
+        strategy:
+                type: Recreate
+
+        template:
+                metadata:
+                        labels:
+                                app: services-stack
+                spec:
+                        containers:
+
+                                - image: 192.168.1.5:5000/httpserve:latest
+                                  name: httpservice
+                                  ports:
+                                          - containerPort: 80
+
+                                - image: 192.168.1.5:5000/sshserve:latest
+                                  name: sshservice
+                                  ports:
+                                          - containerPort: 22
+
+                                - image: 192.168.1.5:5000/ftpserve:latest
+                                  name: ftpservice
+                                  ports:
+                                          - containerPort: 21
+
+                                - image: 192.168.1.5:5000/telserve:latest
+                                  name: telserve
+                                  ports:
+                                          - containerPort: 23
+
+                                - image: 192.168.1.5:5000/smtpserve:latest
+                                  name: smtpserve
+                                  ports:
+                                          - containerPort: 25
+
+---
+# Now we will be creating service so that these services can be accessed. As these have to be accessed internally we will keep it clusterIP service
+
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: services-stack
+        labels:
+                app: services-stack
+
+spec:
+        ports:
+                - protocol: TCP
+                  port: 80
+                  targetPort: 80
+
+                - protocol: TCP
+                  port: 22
+                  targetPort: 22
+
+                - protocol: TCP
+                  port: 21
+                  targetPort: 21
+
+                - protocol: TCP
+                  port: 23
+                  targetPort: 23
+
+                - protocol: TCP
+                  port: 25
+                  targetPort: 25
+             
+
+        selector:
+                app: services-stack
+
+
+

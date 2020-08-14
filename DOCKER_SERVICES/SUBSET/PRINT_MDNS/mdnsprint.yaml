@@ -1,0 +1,75 @@
+apiVersion: v1
+kind: Service
+metadata:
+        name: print-mdns
+        namespace: kube-system
+        labels:
+                app: print-mdns
+spec:
+        type: NodePort
+
+        ports:
+
+                - nodePort: 32023
+                  name: "631"
+                  port: 631
+                  targetPort: 631
+                - nodePort: 32024
+                  name: "139"
+                  port: 139
+                  targetPort: 139
+                - nodePort: 32025
+                  name: "445"
+                  port: 445
+                  targetPort: 445
+                - nodePort: 32026
+                  name: "137"
+                  port: 137
+                  protocol: UDP
+                  targetPort: 137
+                - nodePort: 32027
+                  name: "5353"
+                  port: 5353
+                  protocol: UDP
+                  targetPort: 5353
+
+        selector:
+                app: print-mdns
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: print-mdns
+        namespace: kube-system
+        labels:
+                app: print
+spec:
+        selector:
+                matchLabels:
+                        app: print
+
+        strategy:
+                type: Recreate
+        template:
+                metadata:
+                        labels:
+                                app: print
+
+                spec:
+                        containers:
+
+                                - image: 192.168.1.3:5000/printarch:2
+                                  name: print
+                                  ports:
+                                          - containerPort: 631
+                                          - containerPort: 137
+                                          - containerPort: 139
+                                          - containerPort: 445
+
+
+                                - image: 192.168.1.3:5000/mdnsarch:2
+                                  name: mdns
+                                  ports:
+                                          - containerPort: 5353

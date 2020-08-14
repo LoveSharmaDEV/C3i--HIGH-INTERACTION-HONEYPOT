@@ -1,0 +1,10 @@
+version: '3'
+services:
+        docker-registry:
+                image: registry:latest
+                container_name: docker-registry
+                ports:
+                        - 5000:5000
+                restart: always
+                volumes:
+                        - ./volume:/var/lib/registry 

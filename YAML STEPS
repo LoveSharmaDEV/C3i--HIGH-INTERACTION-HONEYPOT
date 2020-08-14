@@ -1,0 +1,91 @@
+
+
+
+
+************************************************************************* SETTING UP THE CLUSTER**********************************************************************************
+setup required
+
+ONE VM FOR MASTER AND OTHER VM FOR SLAVE NODE
+1st adapter : NAT
+2nd adapter:  BRIDGED ADAPTER
+
+
+
+1. swapoff -a
+
+2. vi /etc/fstab comment out the swap entry
+
+3. vi /etc/network/interfaces # edit this to make the bridge interface ip alloted to yoou to make it static
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth1
+iface eth1 inet static
+address 192.168.1.4
+
+4.  vi /etc/hosts  (setup the hostname and ip configuration)
+192.168.1.4  masternode
+192.168.1.7  kubeworker1
+
+run command $ nmtui
+got to change hostname
+change hostname according to respective machine and then restart
+
+
+5. cat > /etc/sysctl.d/20-bridge-nf.conf <<EOF
+  net.bridge.bridge-nf-call-iptables = 1
+  EOF
+
+6. sysctl --system
+
+7. cat > /etc/docker/daemon.json <<EOF
+  {
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+  }
+   EOF
+
+8. install docker and kubernetes components
+
+9. systemctl restart docker.service
+   systemctl restart kubelet.service
+
+10. kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=192.168.1.4
+
+11. kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+
+12. edit the flannel for --iface to be used and then  kubectl apply -f flannel.yaml
+
+13.  join the nodes DONE!!!!!!!!!!!!!
+
+
+
+
+
+
+
+
+
+**************************************************************************************************** DONT RUN IT *************************************************************************************************************************8
+
+CLUSTER CLEANUP
+
+kubeadm reset
+
+iptables -F && iptables -t nat -F && iptables -t mangle -F && iptables -X
+
+rm -rf /etc/cni/net.d
+
+rm -rf $HOME/.kube/
+
+
+
+
+
+

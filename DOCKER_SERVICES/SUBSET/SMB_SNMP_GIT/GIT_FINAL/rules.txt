@@ -1,0 +1,12 @@
+
+
+MAKE A GIT TEST PROJECT FOLDER(ON CLIENT MACHINE)
+1. mkdir testproject && cd testproject
+2. git init
+3. touch test1.txt && touch test2.txt && touch test3.txt
+4. git remote add origin ssh://root@192.168.1.7:32022/var/www/git/test.git
+5. git add .
+6. git commit -a -m "Added test directories and files"
+7. git push ssh://root@192.168.1.7:32022/var/www/git/test.git
+
+

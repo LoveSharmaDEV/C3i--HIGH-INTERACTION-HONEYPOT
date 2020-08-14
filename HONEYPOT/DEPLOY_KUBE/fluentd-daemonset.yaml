@@ -1,0 +1,189 @@
+# First we will create a service account on this namespace
+# To delete use: kubectl delete sa fluentd -n kube-system
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+        name: fluentd
+        namespace: kube-system
+
+---
+
+# Now we will create a cluster role on kube-system name space with some permissions
+# To delete use: kubectl delete ClusterRole fluentd -n kube-system
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRole
+metadata:
+        name: fluentd
+        namespace: kube-system
+rules:
+        - apiGroups:
+                - ""
+
+          resources:
+                  - pods
+                  - namespaces
+          
+          verbs:
+                  - get
+                  - list
+                  - watch
+
+---
+
+# Now we will bind cluster role named fluentd to our service account named fluentd
+# To delete use: kubectl delete ClusterRoleBinding fluentd -n kube-system
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+        name: fluentd
+roleRef:
+        kind: ClusterRole
+        name: fluentd
+        apiGroup: rbac.authorization.k8s.io
+subjects:
+        - kind: ServiceAccount
+          name: fluentd
+          namespace: kube-system
+
+---
+
+# Creating a config map that would define the configuration of our fluentd aggregator
+# To delete use: kubectl delete cm fluentd-config -n kube-system
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: fluentd-config
+        namespace: kube-system
+data:
+        fluent.conf: |
+                <source>
+                @type forward
+                port 24224
+                bind 0.0.0.0
+                </source>
+                <match *.**>
+                @type stdout
+                </match>
+---
+
+
+# Now we will create a deployment for deploying our fluentd aggergator on kube-system logging namespace
+# To delete use: kubectl delete deployment fluentdaggregator -n kube-system
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: fluentdaggregator
+        namespace: kube-system
+        labels:
+                app: fluentd
+spec:
+        selector:
+                matchLabels:
+                        app: fluentd
+        replicas: 1
+        template:
+                metadata:
+                        labels:
+                                app: fluentd
+                spec:
+                        containers:
+                                - name: fdlogger
+                                  env:
+                                          - name: FLUENTD_UID
+                                            value: root
+                                  image: fluentd:latest
+
+                                  securityContext:
+                                          privileged: true
+                                  volumeMounts:
+
+                                          - name: log-config
+                                            mountPath: /fluentd/etc/
+
+
+                        volumes:
+
+                                - name: log-config
+                                  configMap:
+                                          name: fluentd-config
+
+---
+# This is service for above created deployment. This is a clusterIP service accessible from within the cluster
+# To delete use: kubectl delete svc fluentdarchservice -n kube-system
+apiVersion: v1
+kind: Service
+metadata:
+        name: fluentdarchservice
+        namespace: kube-system
+spec:
+        selector:
+                app: fluentd
+        ports:
+                - protocol: TCP
+                  name: "24224"
+                  port: 24224
+                  targetPort: 24224
+---
+
+# Now we will deploy a fluentd forward daemonset that will get deployed on all the nodes and will collect logs from /var/log and var/lib/docker of host
+# To delete use: kubectl delete ds fluentd -n kube-system
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+        name: fluentd
+        namespace: kube-system
+        labels:
+                k8s-app: fluentd-logging
+                version: v1
+spec:
+        selector:
+                matchLabels:
+                        k8s-app: fluentd-logging
+                        version: v1
+        template:
+                metadata:
+                        labels:
+                                k8s-app: fluentd-logging
+                                version: v1
+                spec:
+                        serviceAccount: fluentd
+                        serviceAccountName: fluentd
+                        tolerations:
+                                - key: node-role.kubernetes.io/master
+                                  effect: NoSchedule
+                        containers:
+                                - name: fluentd
+                                  image: fluent/fluentd-kubernetes-daemonset:v1-debian-forward
+                                  env:
+                                          - name:  FLUENT_FOWARD_HOST
+                                            value: "fluentdarchservice"
+                                          - name:  FLUENT_FOWARD_PORT
+                                            value: "24224"
+                                  resources:
+                                          limits:
+                                                  memory: 200Mi
+                                          requests:
+                                                  cpu: 100m
+                                                  memory: 200Mi
+                                  volumeMounts:
+                                          - name: varlog
+                                            mountPath: /var/log
+                                          - name: varlibdockercontainers
+                                            mountPath: /var/lib/docker/containers
+                                            readOnly: true
+                        terminationGracePeriodSeconds: 30
+                        volumes:
+                                - name: varlog
+                                  hostPath:
+                                          path: /var/log
+                                - name: varlibdockercontainers
+                                  hostPath:
+                                          path: /var/lib/docker/containers
+
+# kubectl delete sa fluentd -n kube-system
+# kubectl delete ClusterRole fluentd -n kube-system
+# kubectl delete ClusterRoleBinding fluentd -n kube-system
+# kubectl delete cm fluentd-config -n kube-system
+# kubectl delete deployment fluentdaggregator -n kube-system
+# kubectl delete svc fluentdarchservice -n kube-system
+# kubectl delete ds fluentd -n kube-system

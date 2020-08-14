@@ -1,0 +1,129 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: jboss-persistent-storage
+        labels:
+                app: jboss
+                tier: frontend
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/lib/jboss"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: jbmysql-persistent-storage
+        labels:
+                app: jboss
+                tier: mysql
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/lib/jbmysql"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: jboss-persistent-storage
+        labels:
+                app: jboss
+                tier: frontend
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: jbmysql-persistent-storage
+        labels:
+                app: jboss
+                tier: mysql
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+        name: jboss-mysql
+        labels:
+                app: jboss
+spec:
+        type: NodePort
+
+        ports:
+                - nodePort: 32008
+                  name: "p8080"
+                  port: 8080
+                  targetPort: 8080 
+                - nodePort: 32009
+                  name: "p9990"
+                  port: 9990
+                  targetPort: 9990       
+        selector:
+                app: jboss
+                tier: mysql
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: jboss-mysql
+        labels:
+                app: jboss
+spec:
+        selector:
+                matchLabels:
+                        app: jboss
+                        tier: mysql
+        strategy:
+                type: Recreate
+        template:
+                metadata:
+                        labels:
+                                app: jboss
+                                tier: mysql
+                spec:
+                        containers:
+                                - image: mysql:latest
+                                  name: mysql
+                                  env:                
+                                          - name: MYSQL_ROOT_PASSWORD
+                                            value: password
+                                  ports:
+                                          - containerPort: 3306
+                                            name: mysql
+                                  volumeMounts:
+                                          - name: jbmysql-persistent-storage
+                                            mountPath: /var/lib/jbmysql
+
+                                - image: master:5000/jboss:latest
+                                  name: jboss
+                                  ports:
+                                          - containerPort: 8080
+                                            name: "p8080"
+                                          - containerPort: 9990
+                                            name: "p9990"    
+                                  volumeMounts:
+                                          - name: jboss-persistent-storage
+                                            mountPath: var/lib/jboss
+                        volumes:
+                                - name: jbmysql-persistent-storage
+                                  persistentVolumeClaim:
+                                          claimName: jbmysql-persistent-storage
+                                - name: jboss-persistent-storage
+                                  persistentVolumeClaim:
+                                          claimName: jboss-persistent-storage

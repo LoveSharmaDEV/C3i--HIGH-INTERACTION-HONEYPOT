@@ -1,0 +1,63 @@
+# ProFTPD configuration file for Docker.
+
+
+ServerName              "{{ SERVER_NAME }}"
+ServerType              standalone
+DefaultServer           on
+
+PassivePorts            {{ PASV_MIN_PORT }} {{ PASV_MAX_PORT }}
+Port                    21
+Umask                   {{ LOCAL_UMASK }}
+MaxInstances            {{ MAX_INSTANCES }}
+
+
+
+
+Group                   ftpuser
+User                    ftpuser
+
+
+<Directory />
+AllowOverwrite          {{ ALLOW_OVERWRITE }}
+</Directory>
+
+
+
+
+# Logging options
+#
+SystemLog			/var/log/xferlog.legacy
+#
+# Some logging formats
+#
+LogFormat         default "%h %l %u %t \"%r\" %s %b"
+LogFormat			auth    "%v [%P] %h %t \"%r\" %s"
+LogFormat			write   "%h %l %u %t \"%r\" %s %b"
+
+
+
+<Limit WRITE>
+  {{ WRITE_ENABLE }}
+</Limit>
+
+<Anonymous ~ftp>
+  User				ftp
+  Group				ftp
+
+  # We want clients to be able to login with "anonymous" as well as "ftp"
+  UserAlias			anonymous ftp
+
+  # Limit the maximum number of anonymous logins
+  MaxClients			{{ MAX_CLIENTS }}
+
+  # We want 'welcome.msg' displayed at login, and '.message' displayed
+  # in each newly chdired directory.
+  DisplayLogin			welcome.msg
+
+
+  # Limit WRITE everywhere in the anonymous chroot
+  <Limit WRITE>
+    DenyAll
+  </Limit>
+</Anonymous>
+

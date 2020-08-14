@@ -1,0 +1,484 @@
+# AIM IS TO IMPLEMENT SIDECAR LOGGING SYSTEM FOR THE CONTAINERS THAT DONT LOGS TO THEIR RESPECTIVE STDOUT
+# TWO CASES CAN BE POSSIBLE 1. HAVE SEPARATE SIDE CONtAINERS FOR ALL PROXIES  2. A COMMON SIDE CONTAINER FOR ALL
+# WE WILL GO FOR THE FIRST OPTION |'_'|
+
+
+# ------------------------------------------------------------------------------------------------------------------#
+#----> HTTP
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: http-fluentd-config
+data:
+        fluentd.conf: |
+                <source>
+                @type tail
+                path /VULNWEB/HTTP_PROXY.log
+                read_from_head true
+                tag http
+                format none
+                </source>
+                <match http.**>
+                @type stdout
+                </match> 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: http-proxies-stack
+        labels:
+                app: http-proxies-stack
+spec:
+        type: NodePort
+
+        ports:
+                - nodePort: 30080
+                  name: "80"
+                  port: 80
+                  targetPort: 80
+
+        selector:
+                app: http-proxies-stack
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: http-proxies-stack
+        labels:
+                app: http-proxies-stack
+
+spec:
+        selector:
+                matchLabels:
+                        app: http-proxies-stack
+
+        strategy:
+                type: Recreate
+
+        template:
+                metadata:
+                        labels:
+                                app: http-proxies-stack
+
+                spec:
+                        containers:
+
+                                - image: 192.168.1.5:5000/httpproxy:latest
+                                  name: httpproxy
+                                  ports:
+                                          - containerPort: 80
+                                  env:
+                                    - name: REMOTE_IP_ADDRESS
+                                      value: services-stack
+
+                                  volumeMounts:
+                                          - name: httplogs
+                                            mountPath: /VULNWEB
+
+                                - image: fluentd:latest
+                                  name: fdlogger
+                                  volumeMounts:
+                                          - name: httplogs
+                                            mountPath: /VULNWEB
+
+                                          - name: log-config
+                                            mountPath: /etc/td-agent
+
+                        volumes:
+                                - name: httplogs
+                                  emtyDir: {}
+
+                                - name: log-config
+                                  configMap:
+                                          name: http-fluentd-config
+                                
+
+# ------------------------------------------------------------------------------------------------------------------#
+#-----> SSH
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: ssh-fluentd-config
+data:
+        fluentd.conf: |
+                <source>
+                @type tail
+                path /PROXIES/logs/SSH_PROXY.log
+                tag ssh
+                format none
+                </source>
+                <match ssh.**>
+                @type stdout
+                </match> 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: ssh-proxies-stack
+        labels:
+                app: ssh-proxies-stack
+spec:
+        type: NodePort
+
+
+        ports:
+                - nodePort: 30022
+                  name: "22"
+                  port: 22
+                  targetPort: 22
+
+        selector:
+                app: ssh-proxies-stack
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: ssh-proxies-stack
+        labels:
+                app: ssh-proxies-stack
+
+spec:
+        selector:
+                matchLabels:
+                        app: ssh-proxies-stack
+
+        strategy:
+                type: Recreate
+
+        template:
+                metadata:
+                        labels:
+                                app: ssh-proxies-stack
+
+                spec:
+                        containers:
+                                  env:
+                                    - name: REMOTE_IP_ADDRESS
+                                      value: services-stack
+
+                                - image: 192.168.1.5:5000/sshproxy:latest
+                                  name: sshpproxy
+                                  ports:
+                                          - containerPort: 22
+
+                                  volumeMounts:
+                                          - name: sshlogs
+                                            mountPath: /PROXIES/logs/
+
+                                - image: fluentd:latest
+                                  name: fdlogger
+                                  volumeMounts:
+                                          - name: sshlogs
+                                            mountPath: /PROXIES/logs/
+
+                                          - name: log-config
+                                            mountPath: /etc/td-agent
+
+                        volumes:
+                                - name: sshlogs
+                                  emtyDir: {}
+
+                                - name: log-config
+                                  configMap:
+                                          name: ssh-fluentd-config
+                                
+
+# ------------------------------------------------------------------------------------------------------------------#
+#------> FTP
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: ftp-fluentd-config
+data:
+        fluentd.conf: |
+                <source>
+                @type tail
+                path /PROXIES/FTP_PROXY.log
+                tag ftp
+                format none
+                </source>
+                <match ftp.**>
+                @type stdout
+                </match> 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: ftp-proxies-stack
+        labels:
+                app: ftp-proxies-stack
+spec:
+        type: NodePort
+
+        ports:
+                - nodePort: 30021
+                  name: "21"
+                  port: 21
+                  targetPort: 21
+
+        selector:
+                app: ftp-proxies-stack
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: ftp-proxies-stack
+        labels:
+                app: ftp-proxies-stack
+
+spec:
+        selector:
+                matchLabels:
+                        app: ftp-proxies-stack
+
+        strategy:
+                type: Recreate
+
+        template:
+                metadata:
+                        labels:
+                                app: ftp-proxies-stack
+
+                spec:
+                        containers:
+
+                                - image: 192.168.1.5:5000/ftpproxy:latest
+                                  name: ftppproxy
+                                  ports:
+                                          - containerPort: 21
+                                  env:
+                                    - name: REMOTE_IP_ADDRESS
+                                      value: services-stack
+
+                                  volumeMounts:
+                                          - name: ftplogs
+                                            mountPath: /PROXIES/
+
+                                - image: fluentd:latest
+                                  name: fdlogger
+                                  volumeMounts:
+                                          - name: ftplogs
+                                            mountPath: /PROXIES/
+
+                                          - name: log-config
+                                            mountPath: /etc/td-agent
+
+                        volumes:
+                                - name: ftplogs
+                                  emtyDir: {}
+
+                                - name: log-config
+                                  configMap:
+                                          name: ftp-fluentd-config
+                                
+
+# ------------------------------------------------------------------------------------------------------------------#
+#-----> TELNET
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: telnet-fluentd-config
+data:
+        fluentd.conf: |
+                <source>
+                @type tail
+                path /TELNETPROXY/TELNET_PROXY.log
+                tag telnet
+                format none
+                </source>
+                <match telnet.**>
+                @type stdout
+                </match> 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: telnet-proxies-stack
+        labels:
+                app: telnet-proxies-stack
+spec:
+        type: NodePort
+
+        ports:
+                - nodePort: 30023
+                  name: "23"
+                  port: 23
+                  targetPort: 23
+
+        env:
+          - name: REMOTE_IP_ADDRESS
+            value: services-stack
+
+        selector:
+                app: telnet-proxies-stack
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: telnet-proxies-stack
+        labels:
+                app: telnet-proxies-stack
+
+spec:
+        selector:
+                matchLabels:
+                        app: telnet-proxies-stack
+
+        strategy:
+                type: Recreate
+
+        template:
+                metadata:
+                        labels:
+                                app: telnet-proxies-stack
+
+                spec:
+                        containers:
+
+                                - image: 192.168.1.5:5000/telnetproxy:latest
+                                  name: telnetproxy
+                                  ports:
+                                          - containerPort: 23
+
+                                  volumeMounts:
+                                          - name: telnetlogs
+                                            mountPath: /TELNETPROXY
+
+                                - image: fluentd:latest
+                                  name: fdlogger
+                                  volumeMounts:
+                                          - name: telnetlogs
+                                            mountPath: /TELNETPROXY/
+
+                                          - name: log-config
+                                            mountPath: /etc/td-agent
+
+                        volumes:
+                                - name: telnetlogs
+                                  emtyDir: {}
+
+                                - name: log-config
+                                  configMap:
+                                          name: telnet-fluentd-config
+
+#------------------------------------------------------------------------------------------------------------------#
+#----> SMTP
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+        name: smtp-fluentd-config
+data:
+        fluentd.conf: |
+                <source>
+                @type tail
+                path /SMTP/SMTP_PROXY.log 
+                tag smtp
+                format none
+                </source>
+                <match smtp.**>
+                @type stdout
+                </match> 
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: smtp-proxies-stack
+        labels:
+                app: smtp-proxies-stack
+spec:
+        type: NodePort
+
+        ports:
+                - nodePort: 30025
+                  name: "25"
+                  port: 25
+                  targetPort: 25
+
+        selector:
+                app: smtp-proxies-stack
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: smtp-proxies-stack
+        labels:
+                app: smtp-proxies-stack
+
+spec:
+        selector:
+                matchLabels:
+                        app: smtp-proxies-stack
+
+        strategy:
+                type: Recreate
+
+        template:
+                metadata:
+                        labels:
+                                app: smtp-proxies-stack
+
+                spec:
+                        containers:
+
+                                - image: 192.168.1.5:5000/smtpproxy:latest
+                                  name: smtpproxy
+                                  ports:
+                                          - containerPort: 25
+
+                                  volumeMounts:
+                                          - name: smtplogs
+                                            mountPath: /SMTP/
+
+                                  env:
+                                    - name: REMOTE_IP_ADDRESS
+                                      value: services-stack
+
+
+                                - image: fluentd:latest
+                                  name: fdlogger
+                                  volumeMounts:
+                                          - name: smtplogs
+                                            mountPath: /SMTP/SMTP_PROXY.log
+
+                                          - name: log-config
+                                            mountPath: /etc/td-agent
+
+                        volumes:
+                                - name: smtplogs
+                                  emtyDir: {}
+
+                                - name: log-config
+                                  configMap:
+                                          name: smtp-fluentd-config
+
+#------------------------------------------------------------------------------------------------------------------#                                          

@@ -1,0 +1,9 @@
+
+[data]
+path = /helloworld
+available = yes
+valid users = root
+read only = no
+browseable = yes
+public = yes
+writeable = yes

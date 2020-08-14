@@ -1,0 +1,103 @@
+
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: git-smb-snmp
+        namespace: kube-system
+        labels:
+                app: git
+spec:
+        type: NodePort
+
+        ports:
+
+                - nodePort: 32022
+                  name: "22"
+                  port: 22
+                  targetPort: 22
+
+                - nodePort: 32000
+                  name: "80"
+                  port: 80
+                  targetPort: 80 
+
+                - nodePort: 30161
+                  name: "161"
+                  port: 161
+                  targetPort: 161
+                  protocol: UDP
+ 
+                - nodePort: 30139
+                  name: '139'
+                  port: 139
+                  targetPort: 139
+ 
+                - nodePort: 30445
+                  name: "445"
+                  port: 445
+                  targetPort: 445
+    
+        selector:
+                app: git
+                tier: frontend
+       
+
+ 
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: git-smb-snmp
+        namespace: kube-system
+        labels:
+                app: git
+spec:
+        selector:
+                matchLabels:
+                        app: git
+                        tier: frontend
+
+        strategy:
+                type: Recreate
+        template:
+                metadata:
+                        labels:
+                                app: git
+                                tier: frontend
+
+                spec:
+                        containers:
+
+                                - image: 192.168.1.5:5000/gitarch:2
+                                  name: gitservice
+                                  ports:
+                                          - containerPort: 22
+
+
+
+
+                                - image: 192.168.1.5:5000/netbiosarch:2
+                                  name: smb
+                                  ports:
+                                          - containerPort: 139
+                                            name: smba
+                                          - containerPort: 445
+                                            name: smbb
+     
+
+
+                                - image: 192.168.1.5:5000/snmparch:2
+                                  name: snmp
+                                  ports:
+                                          - containerPort: 161
+                                            protocol: UDP
+                                            name: snmp
+                                          
+
+
+
+                         
+
+

@@ -1,0 +1,25 @@
+VULNERABLE PROFTPD SERVER
+
+Vulnerability Details : CVE-2019-12815
+
+An arbitrary file copy vulnerability in mod_copy in ProFTPD up to 1.3.5b allows for remote code execution and information disclosure without authentication, a related issue to CVE-2015-3306. 
+
+CVSS Score 	7.5
+Vulnerability Type(s) 	Execute Code
+
+LINK: https://www.cvedetails.com/cve/CVE-2019-12815/
+
+
+
+
+Vulnerability Details : CVE-2015-3306	(1 Metasploit modules)
+
+The mod_copy module in ProFTPD 1.3.5 allows remote attackers to read and write to arbitrary files via the site cpfr and site cpto commands.  
+
+CVSS Score 	10.0
+Vulnerability Type(s) 	Execute Code
+
+https://www.cvedetails.com/cve/CVE-2015-3306/
+
+
+

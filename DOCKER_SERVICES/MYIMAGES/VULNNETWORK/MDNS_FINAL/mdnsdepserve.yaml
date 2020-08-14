@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: mdnsarchitecture
+        labels:
+                app: mdnsarch 
+
+spec:
+        selector:
+                matchLabels:
+                        app: mdnsarch
+        replicas: 2
+
+        template:
+                metadata:
+                        labels:
+                                app: mdnsarch
+                spec:
+                        containers:
+                                - name: mdnsarch
+                                  image: kubemaster:5000/mdnsarch:2
+                                  ports:
+                                        - containerPort: 5353
+                                          protocol: UDP
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: mdnsarchservice
+spec:
+        type: NodePort
+        selector:
+                app: mdnsarch
+        ports:
+                - nodePort: 32012
+                  name: "5353"
+                  port: 5353
+                  protocol: UDP
+                  targetPort: 5353
+          

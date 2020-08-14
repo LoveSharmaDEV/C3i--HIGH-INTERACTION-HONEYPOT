@@ -1,0 +1,21 @@
+VULNERABLE TRAC SERVER
+RESEARCH : VULNERABILITY TYPE: CSRF 
+ CVE-2008-5647
+CWEID: PHISHING
+Unspecified vulnerability in the HTML sanitizer filter in Trac before 0.11.2 allows attackers to conduct phishing attacks via unknown attack vectors. 
+
+https://www.cvedetails.com/cve/CVE-2008-5647/
+
+
+
+
+
+
+
+
+CVE-2008-5646
+CWEID:Denial Of Service
+
+ Unspecified vulnerability in Trac before 0.11.2 allows attackers to cause a denial of service via unknown attack vectors related to "certain wiki markup." 
+
+https://www.cvedetails.com/cve/CVE-2008-5646/

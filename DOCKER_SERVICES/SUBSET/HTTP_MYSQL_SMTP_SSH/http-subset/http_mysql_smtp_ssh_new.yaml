@@ -1,0 +1,263 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: http-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: http
+                tier: frontend
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/www/html"
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: mysql-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: http
+                tier: mysql
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/lib/mysql"
+
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+        name: smtp-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: http
+                tier: smtp
+spec:
+        capacity:
+                storage: 2Gi
+        accessModes:
+                - ReadWriteMany
+        hostPath:
+                path: "/var/mail"
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: http-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: http
+                tier: frontend
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: mysql-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: http
+                tier: mysql
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+        name: smtp-persistent-storage1
+        namespace: kube-system
+        labels:
+                app: http
+                tier: smtp
+
+spec:
+        accessModes:
+                - ReadWriteMany
+        resources:
+                requests:
+                        storage: 1Gi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+        name: http-mysql
+        namespace: kube-system
+        labels:
+                app: http
+spec:
+        type: NodePort
+
+        ports:
+
+                - nodePort: 32028
+                  name: "22"
+                  port: 22
+                  targetPort: 22
+
+                - nodePort: 32029
+                  name: "8080"
+                  port: 8080
+                  targetPort: 8080
+
+                - nodePort: 32030
+                  name: "21"
+                  port: 21
+                  targetPort: 21
+
+                - nodePort: 32031
+                  name: "20"
+                  port: 20
+                  targetPort: 20
+
+        selector:
+                app: http
+                tier: mysql
+
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+        name: http-mysql
+        namespace: kube-system
+        labels:
+                app: http
+spec:
+        selector:
+                matchLabels:
+                        app: http
+                        tier: mysql
+
+        strategy:
+                type: Recreate
+        template:
+                metadata:
+                        labels:
+                                app: http
+                                tier: mysql
+
+                spec:
+                        containers:
+
+
+                                - image: 192.168.0.6:5000/smtparch:2
+                                  name: smtp
+                                  ports:
+                                          - containerPort: 25
+
+                                  volumeMounts:
+                                          - name: smtp-persistent-storage1
+                                            mountPath: /var/mail/
+
+                                - image: 192.168.0.6:5000/ftparch:2
+                                  name: ftparch
+                                  ports:
+                                          - containerPort: 21
+
+                                  volumeMounts:
+                                          - name: mysqldata
+                                            mountPath: /var/lib/mysql/
+
+
+                                - image: 192.168.0.6:5000/ssharch:2
+                                  name: sshd
+                                  ports:
+                                          - containerPort: 22
+                                            name: sshd
+                                  volumeMounts:
+
+                                          - name: smtpdata
+                                            mountPath: /var/mail
+
+                                          - name: mysqldata
+                                            mountPath: /var/lib/mysql/
+
+                                          - name: httpdata
+                                            mountPath: /var/www/html/
+
+
+                                - image: mysql:5.6
+                                  imagePullPolicy: Always
+                                  name: mysql
+                                  env:
+
+                                          - name: MYSQL_ROOT_PASSWORD
+                                            value: YWRtaW4=
+
+                                  ports:
+                                          - containerPort: 3306
+                                            name: mysql
+                                  volumeMounts:
+                                          - name: mysql-persistent-storage1
+                                            mountPath: /var/lib/mysql/
+
+                                - image: 192.168.0.6:5000/httparch:2
+                                  name: http
+                                  env:
+                                          - name: http_db_host
+                                            value: 127.0.0.1
+                                          - name: http_db_pass
+                                            value: YWRtaW4=
+                                          - name: http_db_user
+                                            value: root
+
+                                  ports:
+                                          - containerPort: 8080
+                                            name: http
+
+                                  volumeMounts:
+
+                                          - name: http-persistent-storage1
+                                            mountPath: /var/www/html/
+
+
+
+
+                        volumes:
+                                - name: mysql-persistent-storage1
+                                  persistentVolumeClaim:
+                                          claimName: mysql-persistent-storage1
+                                - name: http-persistent-storage1
+                                  persistentVolumeClaim:
+                                          claimName: http-persistent-storage1
+                                - name: smtp-persistent-storage1
+                                  persistentVolumeClaim:
+                                          claimName: smtp-persistent-storage1
+
+                                - name: mysqldata
+                                  hostPath:
+                                          path: /var/lib/mysql
+                                - name: httpdata
+                                  hostPath:
+                                          path:  /var/www/html
+                                - name: smtpdata
+                                  hostPath:
+                                          path: /var/mail
+
+

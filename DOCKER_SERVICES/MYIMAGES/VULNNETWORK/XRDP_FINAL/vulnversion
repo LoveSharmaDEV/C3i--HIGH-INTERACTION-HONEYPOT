@@ -1,0 +1,8 @@
+VULNERABLE XRDP SERVER
+RESEARCH : VULNERABILITY TYPE: Overflow
+
+Vulnerability Details : CVE-2017-16927
+
+The scp_v0s_accept function in sesman/libscp/libscp_v0.c in the session manager in xrdp through 0.9.4 uses an untrusted integer as a write length, which allows local users to cause a denial of service (buffer overflow and application crash) or possibly have unspecified other impact via a crafted input stream.  
+
+https://www.cvedetails.com/cve/CVE-2017-16927/

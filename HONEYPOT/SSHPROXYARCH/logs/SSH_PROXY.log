@@ -1,0 +1,19 @@
+04/24/2020 02:24:24 PM Connection has been established IP 127.0.0.1at port 37318
+04/24/2020 02:24:24 PM Connected (version 2.0, client OpenSSH_8.1p1)
+04/24/2020 02:24:39 PM Connection has been established IP 127.0.0.1at port 37330
+04/24/2020 02:24:39 PM Connected (version 2.0, client OpenSSH_8.1p1)
+04/24/2020 02:24:41 PM Auth rejected (none).
+04/24/2020 02:24:43 PM Username is | root |  password is | root |
+04/24/2020 02:24:43 PM Auth granted (password).
+04/24/2020 02:24:43 PM Connected (version 2.0, client OpenSSH_7.9p1)
+04/24/2020 02:24:43 PM Authentication (publickey) failed.
+04/24/2020 02:24:43 PM Authentication (password) successful!
+04/24/2020 02:24:43 PM Connected (version 2.0, client OpenSSH_7.9p1)
+04/24/2020 02:24:43 PM Authentication (password) successful!
+04/24/2020 02:24:58 PM Command Entered | sftp root@127.0.0.1 | By User IP |127.0.0.1 | At Port | 37330
+04/24/2020 02:25:01 PM Command Entered | yes | By User IP |127.0.0.1 | At Port | 37330
+04/24/2020 02:25:16 PM Command Entered | root | By User IP |127.0.0.1 | At Port | 37330
+04/24/2020 02:25:18 PM Command Entered | ls | By User IP |127.0.0.1 | At Port | 37330
+04/24/2020 02:25:21 PM Command Entered | ? | By User IP |127.0.0.1 | At Port | 37330
+04/24/2020 02:25:30 PM Command Entered | exit | By User IP |127.0.0.1 | At Port | 37330
+04/24/2020 02:25:31 PM Disconnect (code 11): disconnected by user
