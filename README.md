@@ -164,6 +164,13 @@ These logs would be fetched up by the fluentd daemonset which will be deployed o
 
   </br> </br> </br>
   
+**Run The Project**
+* Develop all the docker images using docker files on the master node. (In /HONEYPOT)
+* Set up local registry following steps given in DOCKER_SERVICES/MYIMAGES/LOCAL_REGISTRY/rules.txt
+* Set up the kubernetes cluster using YAML STEPS. (You can also use your own way of setting up cluster)
+* First deploy the services.yaml file using command $ kubectl apply -f services.yaml
+* Then deploy the proxies.yaml file using command $ kubectl apply -f proxies.yaml 
+
  ## FUTURE ENHANCEMENTS
  * Including more vulnerable services in the bank. (Done)
  * Dividing services into subsets. (Done)
