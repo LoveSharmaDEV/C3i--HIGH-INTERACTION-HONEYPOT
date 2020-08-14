@@ -3,7 +3,7 @@
 
 # HONEYPOT
 
-<img src="HONEYPOT/ARCHITECTURE/Honey.jpeg" width=450 height=350>
+<img src="HONEYPOT/ARCHITECTURE/Honey.jpeg" width=550 height=350>
 
 A honeypot is a computer security mechanism which is set to detect or deflect the unauthorised access of any information system. Generally honeypot consists of data, which seems to be legitimate part of the service, but is in isaloted enviroments and is frequently monitored.
 
@@ -38,7 +38,7 @@ In this project we have used services :-
 The first phase was to create docker images for our vulnerable services. So we created dockerfile for each and installed the services from scratch using source code. To ensure that the services version are vulnerable we have installed the versions with CVE score greater than 7.5
 
 ### THE SECOND PHASE
-<img src="HONEYPOT/ARCHITECTURE/Proxies-1.png" width=350 height=250>
+<img src="HONEYPOT/ARCHITECTURE/Client-server-communication-via-proxy-server.png" width=350 height=250>
 
 
 The second phase was to basically create proxies for all the services mentioned above in order to log down each activity performed by user on the service. Proxies have been written in python using libraries like paramiko (For SSH), twisted (for TELNET), smtplib (for SMTP) while the core of each proxy lied in the implementation of python sockets.
