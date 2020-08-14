@@ -160,10 +160,15 @@ These logs would be fetched up by the fluentd daemonset which will be deployed o
 
 **ARCHITECTURE FOLLOWED IN PROJECT**
 
-![](HONEYPOT/ARCHITECTURE/ARCH)
+<img src="HONEYPOT/ARCHITECTURE/arch.png" width=750 height=750>
 
+  </br> </br> </br>
   
-
+ ## FUTURE ENHANCEMENTS
+ * Including more vulnerable services in the bank. (Done)
+ * Dividing services into subsets. (Done)
+ * Integrating the services to create a vulnerable enviroment. (Done)
+ * Setting up a logging method for subsets.
  
 
 
