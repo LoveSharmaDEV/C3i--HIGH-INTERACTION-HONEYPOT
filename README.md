@@ -32,16 +32,19 @@ In this project we have used services :-
 * SMTP SERVICE
 
 ### THE FIRST PHASE
-<img src="HONEYPOT/ARCHITECTURE/Docker_logo_011.png" width=350 height=250>
+<img src="HONEYPOT/ARCHITECTURE/Docker_logo_011.png" width=250 height=250>
 
 
 The first phase was to create docker images for our vulnerable services. So we created dockerfile for each and installed the services from scratch using source code. To ensure that the services version are vulnerable we have installed the versions with CVE score greater than 7.5
 
 ### THE SECOND PHASE
+<img src="HONEYPOT/ARCHITECTURE/Proxies-1.png" width=350 height=250>
+
+
 The second phase was to basically create proxies for all the services mentioned above in order to log down each activity performed by user on the service. Proxies have been written in python using libraries like paramiko (For SSH), twisted (for TELNET), smtplib (for SMTP) while the core of each proxy lied in the implementation of python sockets.
 
 ### THE THIRD PHASE
-<img src="HONEYPOT/ARCHITECTURE/Kubernetes-2.png" width=350 height=250>
+<img src="HONEYPOT/ARCHITECTURE/Kubernetes-2.png" width=450 height=250>
 
 The third phase involved setting up the kubernetes cluster. We have used a 3 noded kubernetes cluster (1 master and 2 slaves nodes)
 
@@ -109,7 +112,7 @@ Multicontainer pod basically involves running more than one docker containers in
 
 ### THE FIFTH PHASE
 
-<img src="HONEYPOT/ARCHITECTURE/localreg.jpg" width=350 height=250>
+<img src="HONEYPOT/ARCHITECTURE/localreg.jpg" width=450 height=350>
 
 The Fifth phase Taking the whole setup offline. This phase basically involved having all images locally present. We dont want our honeypot to depend on dockerhub to download images. So here we created a private local registry server which can be used by the all the nodes to download images when required.
 
