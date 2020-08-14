@@ -32,7 +32,7 @@ In this project we have used services :-
 * SMTP SERVICE
 
 ### THE FIRST PHASE
-<img src="HONEYPOT/ARCHITECTURE/Docker_logo_011.png" width=250 height=250>
+<img src="HONEYPOT/ARCHITECTURE/docker.png" width=250 height=250>
 
 
 The first phase was to create docker images for our vulnerable services. So we created dockerfile for each and installed the services from scratch using source code. To ensure that the services version are vulnerable we have installed the versions with CVE score greater than 7.5
