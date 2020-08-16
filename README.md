@@ -1,4 +1,3 @@
-[create an anchor](#heading-3)
 # C3i--HIGH-INTERACTION-HONEYPOT
 
 
