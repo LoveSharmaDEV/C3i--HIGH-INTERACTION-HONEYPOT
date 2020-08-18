@@ -174,8 +174,13 @@ These logs would be fetched up by the fluentd daemonset which will be deployed o
  ## FUTURE ENHANCEMENTS
  * Including more vulnerable services in the bank. (Done)
  * Dividing services into subsets. (Done)
- * Integrating the services to create a vulnerable enviroment. (Done)
- * Setting up a logging method for subsets.
+ * Integrating services within the subsets. The integration can be performed in following ways:-
+   * Integrating using ***default interface*** as provided by the application. The services can communicate in single pod using the local host.
+   * Integrating through shared volume in Kubernetes.
+   * Integrating by running services in a single pod. As a standalone server.
+   
+ * Thus a subset created would be completely act as deception environment with many services running in a single pod.. (Done)
+ * Setting up a logging method for subsets. (In progress)
  
 
 
